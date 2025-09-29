@@ -8,12 +8,46 @@ class ParticipantForm(forms.ModelForm):
         fields = ['participant_id', 'first_name', 'last_name', 'date_of_birth', 'gender', 'contact_info']
 
 
-class VitalsForm(forms.ModelForm):
+class VisitForm(forms.ModelForm):
+    # Optional: Add a notes field if you want to capture notes without modifying the model
+    visit_notes = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={
+            'rows': 3,
+            'placeholder': 'Any special notes for this visit...',
+            'class': 'form-control'
+        }),
+        label="Initial Notes (Optional)"
+    )
+    
     class Meta:
-        model = Vitals
-        fields = ['blood_pressure_systolic', 'blood_pressure_diastolic',
-                  'heart_rate', 'temperature', 'height', 'weight']
-
+        model = Visit
+        fields = ['visit_type']  # Only include model fields here
+        widgets = {
+            'visit_type': forms.Select(attrs={
+                'class': 'form-select',
+                'required': True
+            })
+        }
+        labels = {
+            'visit_type': 'Visit Type *'
+        }
+    
+    def __init__(self, *args, **kwargs):
+        # Extract participant before calling super
+        self.participant = None
+        if 'participant' in kwargs:
+            self.participant = kwargs.pop('participant')
+        super().__init__(*args, **kwargs)
+        
+    def save(self, commit=True):
+        # Don't call super().save() immediately
+        instance = super().save(commit=False)
+        if self.participant:
+            instance.participant = self.participant
+        if commit:
+            instance.save()
+        return instance
 
 class DoctorQuestionnaireForm(forms.ModelForm):
     class Meta:
