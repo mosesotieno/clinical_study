@@ -19,35 +19,32 @@
                     <h6><i class="fas fa-user"></i> Participant Information</h6>
                     <p class="mb-1"><strong>ID:</strong> {{ participant.participant_id }}</p>
                     <p class="mb-1"><strong>Name:</strong> {{ participant.first_name }} {{ participant.last_name }}</p>
-                    <p class="mb-0"><strong>DOB:</strong> {{ participant.date_of_birth }} ({{ participant.date_of_birth|timesince }} old)</p>
+                    <p class="mb-0"><strong>DOB:</strong> {{ participant.date_of_birth }} 
+                        ({{ participant.date_of_birth|timesince }} old)
+                    </p>
                 </div>
 
                 <form method="post" id="createVisitForm">
                     {% csrf_token %}
-                    
+                    {{ form.non_field_errors }}
+
                     <div class="mb-3">
-                        <label for="visit_type" class="form-label">Visit Type *</label>
-                        <select class="form-select" id="visit_type" name="visit_type" required>
-                            <option value="">Select Visit Type</option>
-                            <option value="BASELINE" {% if request.GET.type == 'BASELINE' %}selected{% endif %}>
-                                Baseline Visit
-                            </option>
-                            <option value="FOLLOWUP_1" {% if request.GET.type == 'FOLLOWUP_1' %}selected{% endif %}>
-                                1st Follow-up Visit
-                            </option>
-                            <option value="FOLLOWUP_2" {% if request.GET.type == 'FOLLOWUP_2' %}selected{% endif %}>
-                                2nd Follow-up Visit
-                            </option>
-                        </select>
+                        {{ form.visit_type.label_tag }}
+                        {{ form.visit_type }}
+                        {% if form.visit_type.errors %}
+                            <div class="text-danger small">{{ form.visit_type.errors }}</div>
+                        {% endif %}
                     </div>
 
                     <div class="mb-3">
-                        <label for="visit_notes" class="form-label">Initial Notes (Optional)</label>
-                        <textarea class="form-control" id="visit_notes" name="visit_notes" rows="3" 
-                                  placeholder="Any special notes for this visit..."></textarea>
+                        {{ form.visit_notes.label_tag }}
+                        {{ form.visit_notes }}
+                        {% if form.visit_notes.errors %}
+                            <div class="text-danger small">{{ form.visit_notes.errors }}</div>
+                        {% endif %}
                     </div>
 
-                    <!-- Visit Requirements -->
+                    <!-- Visit Workflow Info -->
                     <div class="alert alert-warning">
                         <h6><i class="fas fa-info-circle"></i> Visit Workflow</h6>
                         <p class="mb-1">This visit will follow the standard workflow:</p>
@@ -74,9 +71,9 @@
                                     <p class="mb-1 small">
                                         Status: 
                                         {% if prev_visit.completed %}
-                                        <span class="badge bg-success">Completed</span>
+                                            <span class="badge bg-success">Completed</span>
                                         {% else %}
-                                        <span class="badge bg-warning">Incomplete</span>
+                                            <span class="badge bg-warning">Incomplete</span>
                                         {% endif %}
                                     </p>
                                 </div>
@@ -87,7 +84,8 @@
                     {% endwith %}
 
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                        <a href="{% url 'core:participant_detail' participant.id %}" class="btn btn-secondary me-md-2">
+                        <a href="{% url 'core:participant_detail' participant.id %}" 
+                           class="btn btn-secondary me-md-2">
                             Cancel
                         </a>
                         <button type="submit" class="btn btn-success">
@@ -99,16 +97,4 @@
         </div>
     </div>
 </div>
-
-<script>
-document.getElementById('createVisitForm').addEventListener('submit', function(e) {
-    const visitType = document.getElementById('visit_type').value;
-    if (!visitType) {
-        e.preventDefault();
-        alert('Please select a visit type');
-        return false;
-    }
-    return true;
-});
-</script>
 {% endblock %}

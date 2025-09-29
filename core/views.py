@@ -8,7 +8,7 @@ import csv
 from datetime import datetime, timedelta
 
 from .models import *
-
+from .forms import *
 
 # =============================================================================
 # UTILITY FUNCTIONS
@@ -174,20 +174,20 @@ def delete_participant(request, participant_id):
 
 @login_required
 def create_visit(request, participant_id):
-    """Create a new visit for a participant"""
     participant = get_object_or_404(Participant, id=participant_id)
-    
-    if request.method == 'POST':
-        visit_type = request.POST.get('visit_type')
-        visit = Visit.objects.create(
-            participant=participant,
-            visit_type=visit_type
-        )
-        messages.success(request, f'New {visit.get_visit_type_display()} visit created!')
-        return redirect('core:vitals', visit_id=visit.id)
-    
-    context = {'participant': participant}
-    return render(request, 'core/create_visit.html', context)
+
+    if request.method == "POST":
+        form = VisitForm(request.POST)
+        if form.is_valid():
+            visit = form.save(commit=False)
+            visit.participant = participant
+            visit.save()
+            messages.success(request, f"New {visit.get_visit_type_display()} visit created!")
+            return redirect("core:vitals", visit_id=visit.id)
+    else:
+        form = VisitForm()
+
+    return render(request, "core/create_visit.html", {"form": form, "participant": participant})
 
 
 @login_required
