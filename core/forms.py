@@ -71,3 +71,36 @@ class VisitForm(forms.ModelForm):
     class Meta:
         model = Visit
         fields = ['visit_type']
+
+
+class DoctorAssessmentForm(forms.ModelForm):
+    class Meta:
+        model = DoctorQuestionnaire
+        fields = [
+            "chief_complaint",
+            "medical_history",
+            "current_medications",
+            "physical_exam_findings",
+        ]
+        widgets = {
+            "chief_complaint": forms.Textarea(attrs={
+                "class": "form-control",
+                "rows": 3,
+                "placeholder": "Primary reason for visit..."
+            }),
+            "medical_history": forms.Textarea(attrs={
+                "class": "form-control",
+                "rows": 3,
+                "placeholder": "Relevant medical history..."
+            }),
+            "current_medications": forms.Textarea(attrs={
+                "class": "form-control",
+                "rows": 2,
+                "placeholder": "List current medications..."
+            }),
+            "physical_exam_findings": forms.Textarea(attrs={
+                "class": "form-control",
+                "rows": 4,
+                "placeholder": "Document physical examination findings..."
+            }),
+        }

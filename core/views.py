@@ -338,44 +338,37 @@ def take_vitals(request, visit_id):
 def doctor_assessment(request, visit_id):
     """Doctor assessment for a visit"""
     visit = get_object_or_404(Visit, id=visit_id)
-    
-    if not hasattr(visit, 'vitals'):
-        messages.warning(request, 'Please complete vitals first.')
-        return redirect('core:vitals', visit_id=visit_id)
-    
+
+    if not hasattr(visit, "vitals"):
+        messages.warning(request, "Please complete vitals first.")
+        return redirect("core:vitals", visit_id=visit_id)
+
     # Calculate BMI if vitals exist
     bmi = None
-    if hasattr(visit, 'vitals') and visit.vitals.height and visit.vitals.weight:
+    if hasattr(visit, "vitals") and visit.vitals.height and visit.vitals.weight:
         height_m = visit.vitals.height / 100
-        bmi = visit.vitals.weight / (height_m * height_m)
-        bmi = round(bmi, 1)
-    
-    if request.method == 'POST':
-        try:
-            chief_complaint = request.POST.get('chief_complaint')
-            medical_history = request.POST.get('medical_history')
-            current_medications = request.POST.get('current_medications')
-            physical_exam_findings = request.POST.get('physical_exam_findings')
-            
-            doctor_questionnaire = DoctorQuestionnaire.objects.create(
-                visit=visit,
-                chief_complaint=chief_complaint,
-                medical_history=medical_history,
-                current_medications=current_medications,
-                physical_exam_findings=physical_exam_findings,
-                completed_by=request.user
-            )
-            
-            messages.success(request, 'Doctor assessment completed!')
-            return redirect('core:psychiatrist_assessment', visit_id=visit.id)
-        except Exception as e:
-            messages.error(request, f'Error saving assessment: {str(e)}')
-    
+        bmi = round(visit.vitals.weight / (height_m * height_m), 1)
+
+    if request.method == "POST":
+        form = DoctorAssessmentForm(request.POST)
+        if form.is_valid():
+            assessment = form.save(commit=False)
+            assessment.visit = visit
+            assessment.completed_by = request.user
+            assessment.save()
+            messages.success(request, "Doctor assessment completed!")
+            return redirect("core:psychiatrist_assessment", visit_id=visit.id)
+        else:
+            messages.error(request, "Please correct the errors below.")
+    else:
+        form = DoctorAssessmentForm()
+
     context = {
-        'visit': visit,
-        'bmi': bmi
+        "visit": visit,
+        "bmi": bmi,
+        "form": form,
     }
-    return render(request, 'core/doctor_assessment.html', context)
+    return render(request, "core/doctor_assessment.html", context)
 
 
 @login_required

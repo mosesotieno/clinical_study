@@ -41,47 +41,35 @@
                     </div>
                 </div>
 
-                <form method="post" id="doctorForm">
+               <form method="post" id="doctorForm">
                     {% csrf_token %}
                     
                     <div class="mb-3">
-                        <label for="chief_complaint" class="form-label">Chief Complaint *</label>
-                        <textarea class="form-control" id="chief_complaint" name="chief_complaint" rows="3" required placeholder="Primary reason for visit..."></textarea>
+                        {{ form.chief_complaint.label_tag }}
+                        {{ form.chief_complaint }}
+                        {{ form.chief_complaint.errors }}
                         <div class="form-text">Describe the main symptoms or concerns</div>
                     </div>
 
                     <div class="mb-3">
-                        <label for="medical_history" class="form-label">Medical History</label>
-                        <textarea class="form-control" id="medical_history" name="medical_history" rows="3" placeholder="Relevant medical history, surgeries, chronic conditions..."></textarea>
+                        {{ form.medical_history.label_tag }}
+                        {{ form.medical_history }}
+                        {{ form.medical_history.errors }}
                         <div class="form-text">Include past medical conditions, surgeries, hospitalizations</div>
                     </div>
 
                     <div class="mb-3">
-                        <label for="current_medications" class="form-label">Current Medications</label>
-                        <textarea class="form-control" id="current_medications" name="current_medications" rows="2" placeholder="List current medications with dosages..."></textarea>
+                        {{ form.current_medications.label_tag }}
+                        {{ form.current_medications }}
+                        {{ form.current_medications.errors }}
                         <div class="form-text">Include prescription, over-the-counter, and supplements</div>
                     </div>
 
                     <div class="mb-3">
-                        <label for="physical_exam_findings" class="form-label">Physical Examination Findings *</label>
-                        <textarea class="form-control" id="physical_exam_findings" name="physical_exam_findings" rows="4" required placeholder="Document physical examination findings..."></textarea>
+                        {{ form.physical_exam_findings.label_tag }}
+                        {{ form.physical_exam_findings }}
+                        {{ form.physical_exam_findings.errors }}
                         <div class="form-text">Include general appearance, vital signs, system-based findings</div>
-                        
-                        <!-- Quick Templates -->
-                        <div class="mt-2">
-                            <small class="text-muted">Quick templates:</small>
-                            <button type="button" class="btn btn-sm btn-outline-secondary ms-2" onclick="insertTemplate('normal_exam')">Normal Exam</button>
-                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="insertTemplate('hypertension')">Hypertension</button>
-                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="insertTemplate('diabetes')">Diabetes</button>
-                        </div>
-                    </div>
-
-                    <div class="alert alert-warning">
-                        <h6><i class="fas fa-exclamation-triangle"></i> Clinical Alert</h6>
-                        <p class="mb-0">
-                            If you identify any urgent medical concerns, please ensure appropriate follow-up 
-                            and consider immediate referral if necessary.
-                        </p>
                     </div>
 
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
@@ -93,6 +81,7 @@
                         </button>
                     </div>
                 </form>
+
             </div>
         </div>
     </div>
