@@ -1,0 +1,238 @@
+{% extends 'base.html' %}
+
+{% block title %}Data Export - Clinical Study Manager{% endblock %}
+
+{% block page_title %}Participant Data Export{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-download"></i> Export Participant Data
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <h6><i class="fas fa-info-circle"></i> Export Instructions</h6>
+                    <p class="mb-0">
+                        Select the data you want to export. You can choose specific participants, 
+                        date ranges, and data types. The exported data will be in CSV format 
+                        compatible with Excel and statistical software.
+                    </p>
+                </div>
+
+                <form method="post" id="exportForm">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Export Format *</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="format" id="format_csv" value="csv" checked>
+                            <label class="form-check-label" for="format_csv">
+                                CSV (Comma Separated Values)
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="format" id="format_excel" value="excel">
+                            <label class="form-check-label" for="format_excel">
+                                Excel (.xlsx)
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Data Range</label>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label for="export_date_from" class="form-label">From Date</label>
+                                <input type="date" class="form-control" id="export_date_from" name="date_from">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="export_date_to" class="form-label">To Date</label>
+                                <input type="date" class="form-control" id="export_date_to" name="date_to">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Data Types to Include *</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="data_types" id="demographics" value="demographics" checked>
+                            <label class="form-check-label" for="demographics">
+                                Demographic Information
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="data_types" id="vitals_data" value="vitals" checked>
+                            <label class="form-check-label" for="vitals_data">
+                                Vitals Measurements
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="data_types" id="doctor_data" value="doctor" checked>
+                            <label class="form-check-label" for="doctor_data">
+                                Doctor Assessments
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="data_types" id="psychiatry_data" value="psychiatry" checked>
+                            <label class="form-check-label" for="psychiatry_data">
+                                Psychiatry Assessments
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="data_types" id="lab_data" value="lab" checked>
+                            <label class="form-check-label" for="lab_data">
+                                Lab Requests
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="participant_selection" class="form-label">Participant Selection</label>
+                        <select class="form-select" id="participant_selection" name="participant_selection">
+                            <option value="all" selected>All Participants</option>
+                            <option value="completed">Completed All Visits</option>
+                            <option value="active">With Active Visits</option>
+                            <option value="baseline">Baseline Only</option>
+                            <option value="custom">Custom Selection</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3" id="customParticipants" style="display: none;">
+                        <label class="form-label">Select Participants</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="selectAll">
+                            <label class="form-check-label" for="selectAll">
+                                Select All Participants
+                            </label>
+                        </div>
+                        <div style="max-height: 200px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; margin-top: 10px;">
+                            <!-- This would be populated dynamically in a real application -->
+                            <div class="form-check">
+                                <input class="form-check-input participant-check" type="checkbox" name="participants" value="1">
+                                <label class="form-check-label">ENR-001 - John Doe</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input participant-check" type="checkbox" name="participants" value="2">
+                                <label class="form-check-label">ENR-002 - Jane Smith</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input participant-check" type="checkbox" name="participants" value="3">
+                                <label class="form-check-label">ENR-003 - Mike Johnson</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-warning">
+                        <h6><i class="fas fa-exclamation-triangle"></i> Data Privacy</h6>
+                        <p class="mb-0">
+                            This export may contain sensitive participant information. 
+                            Ensure proper data handling and storage according to your 
+                            institution's privacy policies.
+                        </p>
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{% url 'core:dashboard' %}" class="btn btn-secondary me-md-2">
+                            Cancel
+                        </a>
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-download"></i> Generate Export
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Recent Exports -->
+        <div class="card shadow mt-4">
+            <div class="card-header bg-light">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-history"></i> Recent Exports
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Export Date</th>
+                                <th>Data Range</th>
+                                <th>Records</th>
+                                <th>Format</th>
+                                <th>Download</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>2024-01-15 14:30</td>
+                                <td>2024-01-01 to 2024-01-15</td>
+                                <td>156 participants</td>
+                                <td>CSV</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-download"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>2024-01-10 09:15</td>
+                                <td>2024-01-01 to 2024-01-10</td>
+                                <td>128 participants</td>
+                                <td>Excel</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-download"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('participant_selection').addEventListener('change', function() {
+    const customDiv = document.getElementById('customParticipants');
+    if (this.value === 'custom') {
+        customDiv.style.display = 'block';
+    } else {
+        customDiv.style.display = 'none';
+    }
+});
+
+document.getElementById('selectAll').addEventListener('change', function() {
+    const checkboxes = document.querySelectorAll('.participant-check');
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = this.checked;
+    });
+});
+
+// Set default dates
+document.addEventListener('DOMContentLoaded', function() {
+    const today = new Date().toISOString().split('T')[0];
+    const oneMonthAgo = new Date();
+    oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+    const oneMonthAgoStr = oneMonthAgo.toISOString().split('T')[0];
+    
+    document.getElementById('export_date_from').value = oneMonthAgoStr;
+    document.getElementById('export_date_to').value = today;
+});
+
+document.getElementById('exportForm').addEventListener('submit', function(e) {
+    const dataTypes = document.querySelectorAll('input[name="data_types"]:checked');
+    if (dataTypes.length === 0) {
+        e.preventDefault();
+        alert('Please select at least one data type to export.');
+        return false;
+    }
+    return true;
+});
+</script>
+{% endblock %}

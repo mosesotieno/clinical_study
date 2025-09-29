@@ -1,0 +1,246 @@
+{% extends 'base.html' %}
+
+{% block title %}Active Visits - Clinical Study Manager{% endblock %}
+
+{% block page_title %}Active Visits{% endblock %}
+
+{% block page_actions %}
+<div class="btn-group">
+    <a href="{% url 'core:completed_visits' %}" class="btn btn-sm btn-success">
+        <i class="fas fa-check-circle"></i> View Completed Visits
+    </a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="card shadow">
+    <div class="card-header bg-warning text-dark">
+        <h5 class="card-title mb-0">
+            <i class="fas fa-running"></i> Currently Active Visits ({{ visits.count }})
+        </h5>
+    </div>
+    <div class="card-body">
+        {% if visits %}
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover">
+                <thead class="table-warning">
+                    <tr>
+                        <th>Visit ID</th>
+                        <th>Participant</th>
+                        <th>Visit Type</th>
+                        <th>Start Time</th>
+                        <th>Current Station</th>
+                        <th>Time Elapsed</th>
+                        <th>Progress</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for visit in visits %}
+                    <tr>
+                        <td>
+                            <strong>VIS-{{ visit.id|stringformat:"03d" }}</strong>
+                        </td>
+                        <td>
+                            <strong>{{ visit.participant.participant_id }}</strong><br>
+                            <small>{{ visit.participant.first_name }} {{ visit.participant.last_name }}</small>
+                        </td>
+                        <td>
+                            <span class="badge 
+                                {% if visit.visit_type == 'BASELINE' %}bg-primary
+                                {% elif visit.visit_type == 'FOLLOWUP_1' %}bg-info
+                                {% else %}bg-secondary{% endif %}">
+                                {{ visit.get_visit_type_display }}
+                            </span>
+                        </td>
+                        <td>{{ visit.visit_date|date:"H:i" }}</td>
+                        <td>
+                            {% if not visit.vitals %}
+                                <span class="badge bg-danger">Vitals Station</span>
+                            {% elif not visit.doctor_questionnaire %}
+                                <span class="badge bg-primary">Doctor Assessment</span>
+                            {% elif not visit.psychiatrist_questionnaire %}
+                                <span class="badge bg-warning">Psychiatry</span>
+                            {% elif not visit.lab_request %}
+                                <span class="badge bg-info">Lab Request</span>
+                            {% else %}
+                                <span class="badge bg-success">Ready to Complete</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ visit.visit_date|timesince }}</td>
+                        <td>
+                            {% with progress=visit.progress %}
+                            <div class="progress" style="height: 8px;">
+                                <div class="progress-bar" role="progressbar" 
+                                     style="width: {% widthratio progress 4 100 %}%"
+                                     aria-valuenow="{{ progress }}" aria-valuemin="0" aria-valuemax="4">
+                                </div>
+                            </div>
+                            <small class="text-muted">{{ progress }}/4 stations</small>
+                            {% endwith %}
+                        </td>
+                        <td>
+                            {% if not visit.vitals %}
+                            <a href="{% url 'core:vitals' visit.id %}" class="btn btn-sm btn-primary">
+                                Take Vitals
+                            </a>
+                            {% elif not visit.doctor_questionnaire %}
+                            <a href="{% url 'core:doctor_assessment' visit.id %}" class="btn btn-sm btn-primary">
+                                Doctor Assessment
+                            </a>
+                            {% elif not visit.psychiatrist_questionnaire %}
+                            <a href="{% url 'core:psychiatrist_assessment' visit.id %}" class="btn btn-sm btn-primary">
+                                Psychiatry
+                            </a>
+                            {% elif not visit.lab_request %}
+                            <a href="{% url 'core:lab_request' visit.id %}" class="btn btn-sm btn-primary">
+                                Lab Request
+                            </a>
+                            {% else %}
+                            <a href="{% url 'core:complete_visit' visit.id %}" class="btn btn-sm btn-success">
+                                Complete Visit
+                            </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+            <h4 class="text-success">No Active Visits</h4>
+            <p class="text-muted">All visits have been completed. Great work!</p>
+            <a href="{% url 'core:enroll_participant' %}" class="btn btn-success">
+                <i class="fas fa-user-plus"></i> Enroll New Participant
+            </a>
+            <a href="{% url 'core:participant_list' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Create New Visit
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Station Summary -->
+<div class="row mt-4">
+    <div class="col-md-3">
+        <div class="card bg-danger text-white text-center">
+            <div class="card-body">
+                <h3>{{ visits_waiting_vitals }}</h3>
+                <p class="mb-0">Waiting for Vitals</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-primary text-white text-center">
+            <div class="card-body">
+                <h3>{{ visits_waiting_doctor }}</h3>
+                <p class="mb-0">With Doctor</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-dark text-center">
+            <div class="card-body">
+                <h3>{{ visits_waiting_psychiatry }}</h3>
+                <p class="mb-0">With Psychiatry</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white text-center">
+            <div class="card-body">
+                <h3>{{ visits_waiting_lab }}</h3>
+                <p class="mb-0">Lab Requests</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Stats -->
+<div class="row mt-4">
+    <div class="col-lg-6">
+        <div class="card shadow">
+            <div class="card-header bg-light">
+                <h6 class="card-title mb-0">
+                    <i class="fas fa-chart-line"></i> Today's Activity
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-4">
+                        <h4 class="text-primary">{{ today_visits }}</h4>
+                        <small class="text-muted">Visits Today</small>
+                    </div>
+                    <div class="col-4">
+                        <h4 class="text-success">{{ today_completed }}</h4>
+                        <small class="text-muted">Completed Today</small>
+                    </div>
+                    <div class="col-4">
+                        <h4 class="text-warning">{{ visits.count }}</h4>
+                        <small class="text-muted">Currently Active</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card shadow">
+            <div class="card-header bg-light">
+                <h6 class="card-title mb-0">
+                    <i class="fas fa-clock"></i> Average Times
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6">
+                        <h5 class="text-info">~15 min</h5>
+                        <small class="text-muted">Vitals Station</small>
+                    </div>
+                    <div class="col-6">
+                        <h5 class="text-info">~25 min</h5>
+                        <small class="text-muted">Full Visit</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Auto-refresh the page every 60 seconds to show current status
+setTimeout(function() {
+    window.location.reload();
+}, 60000);
+
+// Add some interactive features
+document.addEventListener('DOMContentLoaded', function() {
+    // Add hover effects to table rows
+    const tableRows = document.querySelectorAll('tbody tr');
+    tableRows.forEach(row => {
+        row.addEventListener('mouseenter', function() {
+            this.style.backgroundColor = '#f8f9fa';
+        });
+        row.addEventListener('mouseleave', function() {
+            this.style.backgroundColor = '';
+        });
+    });
+});
+</script>
+
+<style>
+.progress {
+    background-color: #e9ecef;
+    border-radius: 4px;
+}
+.progress-bar {
+    background-color: #0d6efd;
+    border-radius: 4px;
+}
+.card.text-center .card-body {
+    padding: 1.5rem 1rem;
+}
+</style>
+{% endblock %}

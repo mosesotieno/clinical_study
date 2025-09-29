@@ -1,0 +1,395 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ participant.participant_id }} - Clinical Study Manager{% endblock %}
+
+{% block page_title %}Participant Details{% endblock %}
+
+{% block page_actions %}
+<div class="btn-group">
+    <a href="{% url 'core:create_visit' participant.id %}" class="btn btn-sm btn-success">
+        <i class="fas fa-plus"></i> New Visit
+    </a>
+    <a href="{% url 'core:participant_list' %}" class="btn btn-sm btn-secondary">
+        <i class="fas fa-arrow-left"></i> Back to List
+    </a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Participant Information -->
+    <div class="col-lg-4">
+        <div class="card shadow mb-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-user"></i> Basic Information
+                </h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless">
+                    <tr>
+                        <th width="40%">Participant ID:</th>
+                        <td><strong>{{ participant.participant_id }}</strong></td>
+                    </tr>
+                    <tr>
+                        <th>Name:</th>
+                        <td>{{ participant.first_name }} {{ participant.last_name }}</td>
+                    </tr>
+                    <tr>
+                        <th>Date of Birth:</th>
+                        <td>{{ participant.date_of_birth }} (Age: {{ participant.date_of_birth|timesince }})</td>
+                    </tr>
+                    <tr>
+                        <th>Gender:</th>
+                        <td>{{ participant.get_gender_display }}</td>
+                    </tr>
+                    <tr>
+                        <th>Contact:</th>
+                        <td>{{ participant.contact_info }}</td>
+                    </tr>
+                    <tr>
+                        <th>Enrollment Date:</th>
+                        <td>{{ participant.enrollment_date|date:"M d, Y H:i" }}</td>
+                    </tr>
+                    <tr>
+                        <th>Enrolled By:</th>
+                        <td>{{ participant.created_by.get_full_name }}</td>
+                    </tr>
+                    <tr>
+                        <th>Status:</th>
+                        <td>
+                            {% if participant.has_active_visit %}
+                                <span class="badge bg-warning">Active Visit</span>
+                            {% else %}
+                                <span class="badge bg-success">Available</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card shadow">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-bolt"></i> Quick Actions
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'core:create_visit' participant.id %}?type=BASELINE" 
+                       class="btn btn-success btn-lg">
+                        <i class="fas fa-stethoscope"></i> Baseline Visit
+                    </a>
+                    <a href="{% url 'core:create_visit' participant.id %}?type=FOLLOWUP_1" 
+                       class="btn btn-info btn-lg">
+                        <i class="fas fa-redo"></i> 1st Follow-up
+                    </a>
+                    <a href="{% url 'core:create_visit' participant.id %}?type=FOLLOWUP_2" 
+                       class="btn btn-primary btn-lg">
+                        <i class="fas fa-undo"></i> 2nd Follow-up
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Emergency Contact -->
+        <div class="card shadow mt-4">
+            <div class="card-header bg-light">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-phone"></i> Emergency Contact
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="mb-1"><strong>Contact:</strong> {{ participant.emergency_contact|default:"Not provided" }}</p>
+                <p class="mb-0"><strong>Relationship:</strong> {{ participant.emergency_relationship|default:"Not specified" }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Visit History -->
+    <div class="col-lg-8">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-history"></i> Visit History ({{ visits.count }} visits)
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if visits %}
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Visit Date</th>
+                                <th>Type</th>
+                                <th>Vitals</th>
+                                <th>Doctor</th>
+                                <th>Psychiatry</th>
+                                <th>Lab</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for visit in visits %}
+                            <tr>
+                                <td>{{ visit.visit_date|date:"M d, Y H:i" }}</td>
+                                <td>
+                                    <span class="badge 
+                                        {% if visit.visit_type == 'BASELINE' %}bg-primary
+                                        {% elif visit.visit_type == 'FOLLOWUP_1' %}bg-info
+                                        {% else %}bg-secondary{% endif %}">
+                                        {{ visit.get_visit_type_display }}
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    {% if visit.vitals %}
+                                    <i class="fas fa-check text-success" title="Completed"></i>
+                                    {% else %}
+                                    <i class="fas fa-times text-danger" title="Not Completed"></i>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    {% if visit.doctor_questionnaire %}
+                                    <i class="fas fa-check text-success" title="Completed"></i>
+                                    {% else %}
+                                    <i class="fas fa-times text-danger" title="Not Completed"></i>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    {% if visit.psychiatrist_questionnaire %}
+                                    <i class="fas fa-check text-success" title="Completed"></i>
+                                    {% else %}
+                                    <i class="fas fa-times text-danger" title="Not Completed"></i>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    {% if visit.lab_request %}
+                                    <i class="fas fa-check text-success" title="Completed"></i>
+                                    {% else %}
+                                    <i class="fas fa-times text-danger" title="Not Completed"></i>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if visit.completed %}
+                                    <span class="badge bg-success">Completed</span>
+                                    {% else %}
+                                    <span class="badge bg-warning">In Progress</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        {% if not visit.completed %}
+                                            {% if not visit.vitals %}
+                                            <a href="{% url 'core:vitals' visit.id %}" class="btn btn-outline-primary">
+                                                Vitals
+                                            </a>
+                                            {% elif not visit.doctor_questionnaire %}
+                                            <a href="{% url 'core:doctor_assessment' visit.id %}" class="btn btn-outline-primary">
+                                                Doctor
+                                            </a>
+                                            {% elif not visit.psychiatrist_questionnaire %}
+                                            <a href="{% url 'core:psychiatrist_assessment' visit.id %}" class="btn btn-outline-primary">
+                                                Psychiatry
+                                            </a>
+                                            {% elif not visit.lab_request %}
+                                            <a href="{% url 'core:lab_request' visit.id %}" class="btn btn-outline-primary">
+                                                Lab
+                                            </a>
+                                            {% endif %}
+                                        {% else %}
+                                        <button class="btn btn-outline-secondary" disabled>
+                                            Completed
+                                        </button>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-clipboard-list fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No Visits Recorded</h5>
+                    <p class="text-muted">Start by creating the first visit for this participant.</p>
+                    <a href="{% url 'core:create_visit' participant.id %}" class="btn btn-success">
+                        <i class="fas fa-plus"></i> Create First Visit
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Visit Progress Chart -->
+        <div class="card shadow mt-4">
+            <div class="card-header bg-success text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-chart-line"></i> Visit Progress
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-3">
+                        <div class="border rounded p-3">
+                            <h3 class="text-primary">{{ visits.count }}</h3>
+                            <small class="text-muted">Total Visits</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="border rounded p-3">
+                            <h3 class="text-success">{{ completed_visits_count }}</h3>
+                            <small class="text-muted">Completed</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="border rounded p-3">
+                            <h3 class="text-warning">{{ active_visits_count }}</h3>
+                            <small class="text-muted">In Progress</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="border rounded p-3">
+                            <h3 class="text-info">{{ baseline_visits_count }}</h3>
+                            <small class="text-muted">Baseline</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Medical Notes -->
+        <div class="card shadow mt-4">
+            <div class="card-header bg-danger text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-file-medical"></i> Medical Notes
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if participant.medical_history %}
+                <div class="medical-notes">
+                    {{ participant.medical_history|linebreaks }}
+                </div>
+                {% else %}
+                <p class="text-muted text-center mb-0">No medical notes recorded for this participant.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="card shadow mt-4">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-clock"></i> Recent Activity
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="list-group list-group-flush">
+                    {% for visit in visits|slice:":3" %}
+                    <div class="list-group-item">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">{{ visit.get_visit_type_display }} Visit</h6>
+                            <small>{{ visit.visit_date|timesince }} ago</small>
+                        </div>
+                        <p class="mb-1">
+                            Status: 
+                            {% if visit.completed %}
+                            <span class="badge bg-success">Completed</span>
+                            {% else %}
+                            <span class="badge bg-warning">In Progress ({{ visit.progress }}/4)</span>
+                            {% endif %}
+                        </p>
+                        <small class="text-muted">
+                            Started: {{ visit.visit_date|date:"M d, Y H:i" }}
+                        </small>
+                    </div>
+                    {% empty %}
+                    <div class="list-group-item text-center text-muted">
+                        No recent activity
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteParticipantModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Deletion</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete participant <strong>{{ participant.participant_id }}</strong>?</p>
+                <p class="text-danger"><strong>Warning:</strong> This action cannot be undone. All visit data will be permanently deleted.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form method="post" action="{% url 'core:delete_participant' participant.id %}" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Delete Participant</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Function to show delete confirmation modal
+function confirmDelete() {
+    const modal = new bootstrap.Modal(document.getElementById('deleteParticipantModal'));
+    modal.show();
+}
+
+// Add some interactive features
+document.addEventListener('DOMContentLoaded', function() {
+    // Add hover effects to table rows
+    const tableRows = document.querySelectorAll('tbody tr');
+    tableRows.forEach(row => {
+        row.addEventListener('mouseenter', function() {
+            this.style.backgroundColor = '#f8f9fa';
+        });
+        row.addEventListener('mouseleave', function() {
+            this.style.backgroundColor = '';
+        });
+    });
+
+    // Auto-refresh page every 2 minutes to show current status
+    setTimeout(function() {
+        window.location.reload();
+    }, 120000);
+});
+</script>
+
+<style>
+.medical-notes {
+    background-color: #f8f9fa;
+    border-left: 4px solid #dc3545;
+    padding: 15px;
+    border-radius: 4px;
+}
+.table-hover tbody tr:hover {
+    background-color: rgba(0, 123, 255, 0.075);
+}
+.badge {
+    font-size: 0.75em;
+}
+.btn-group-sm .btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}
+.border.rounded {
+    transition: all 0.2s ease-in-out;
+}
+.border.rounded:hover {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transform: translateY(-1px);
+}
+</style>
+{% endblock %}

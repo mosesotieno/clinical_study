@@ -1,0 +1,212 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Clinical Study Manager{% endblock %}
+
+{% block page_title %}Study Dashboard{% endblock %}
+
+{% block page_actions %}
+<div class="btn-group">
+    <a href="{% url 'core:enroll_participant' %}" class="btn btn-sm btn-success">
+        <i class="fas fa-user-plus"></i> Enroll New Participant
+    </a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Statistics Cards -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            Total Participants
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ participants.count }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-users fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            Active Visits Today
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ active_visits.count }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-procedures fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                            Completed Today
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">14</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                            Pending Lab Requests
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">8</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-flask fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Active Visits -->
+    <div class="col-lg-8">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Active Visits</h6>
+            </div>
+            <div class="card-body">
+                {% if active_visits %}
+                <div class="table-responsive">
+                    <table class="table table-bordered" id="activeVisitsTable">
+                        <thead>
+                            <tr>
+                                <th>Participant ID</th>
+                                <th>Name</th>
+                                <th>Visit Type</th>
+                                <th>Current Station</th>
+                                <th>Time Started</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for visit in active_visits %}
+                            <tr>
+                                <td>{{ visit.participant.participant_id }}</td>
+                                <td>{{ visit.participant.first_name }} {{ visit.participant.last_name }}</td>
+                                <td>
+                                    <span class="badge bg-info">{{ visit.get_visit_type_display }}</span>
+                                </td>
+                                <td>
+                                    {% if not visit.vitals %}
+                                        <span class="badge bg-warning">Vitals</span>
+                                    {% elif not visit.doctor_questionnaire %}
+                                        <span class="badge bg-warning">Doctor</span>
+                                    {% elif not visit.psychiatrist_questionnaire %}
+                                        <span class="badge bg-warning">Psychiatrist</span>
+                                    {% elif not visit.lab_request %}
+                                        <span class="badge bg-warning">Lab</span>
+                                    {% else %}
+                                        <span class="badge bg-success">Completed</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ visit.visit_date|timesince }} ago</td>
+                                <td>
+                                    {% if not visit.vitals %}
+                                    <a href="{% url 'core:vitals' visit.id %}" class="btn btn-sm btn-primary">
+                                        Take Vitals
+                                    </a>
+                                    {% elif not visit.doctor_questionnaire %}
+                                    <a href="{% url 'core:doctor_assessment' visit.id %}" class="btn btn-sm btn-primary">
+                                        Doctor Assessment
+                                    </a>
+                                    {% elif not visit.psychiatrist_questionnaire %}
+                                    <a href="{% url 'core:psychiatrist_assessment' visit.id %}" class="btn btn-sm btn-primary">
+                                        Psychiatry
+                                    </a>
+                                    {% elif not visit.lab_request %}
+                                    <a href="{% url 'core:lab_request' visit.id %}" class="btn btn-sm btn-primary">
+                                        Lab Request
+                                    </a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted">No active visits at the moment.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="col-lg-4">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Quick Actions</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'core:enroll_participant' %}" class="btn btn-success btn-lg">
+                        <i class="fas fa-user-plus"></i> Enroll Participant
+                    </a>
+                    <button class="btn btn-info btn-lg">
+                        <i class="fas fa-search"></i> Find Participant
+                    </button>
+                    <button class="btn btn-warning btn-lg">
+                        <i class="fas fa-chart-line"></i> View Reports
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Recent Activity</h6>
+            </div>
+            <div class="card-body">
+                <div class="list-group list-group-flush">
+                    <div class="list-group-item">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">Participant ENR-001 completed visit</h6>
+                            <small>5 min ago</small>
+                        </div>
+                        <p class="mb-1">Baseline visit completed successfully</p>
+                    </div>
+                    <div class="list-group-item">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">New participant enrolled</h6>
+                            <small>15 min ago</small>
+                        </div>
+                        <p class="mb-1">ENR-015 - John Doe</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

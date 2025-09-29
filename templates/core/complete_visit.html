@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+
+{% block title %}Complete Visit - Clinical Study Manager{% endblock %}
+
+{% block page_title %}Complete Visit{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-check-circle"></i> Complete Visit
+                </h5>
+            </div>
+            <div class="card-body">
+                <!-- Visit Summary -->
+                <div class="alert alert-success">
+                    <h6><i class="fas fa-clipboard-check"></i> Visit Ready for Completion</h6>
+                    <p class="mb-0">All stations have been completed. Review the visit summary below before finalizing.</p>
+                </div>
+
+                <!-- Participant Info -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h6>Participant Information</h6>
+                        <table class="table table-sm table-borderless">
+                            <tr>
+                                <th>ID:</th>
+                                <td>{{ visit.participant.participant_id }}</td>
+                            </tr>
+                            <tr>
+                                <th>Name:</th>
+                                <td>{{ visit.participant.first_name }} {{ visit.participant.last_name }}</td>
+                            </tr>
+                            <tr>
+                                <th>Visit Type:</th>
+                                <td>{{ visit.get_visit_type_display }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Visit Timeline</h6>
+                        <table class="table table-sm table-borderless">
+                            <tr>
+                                <th>Start Time:</th>
+                                <td>{{ visit.visit_date|date:"M d, Y H:i" }}</td>
+                            </tr>
+                            <tr>
+                                <th>Duration:</th>
+                                <td>{{ visit.visit_date|timesince }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Station Completion Status -->
+                <h6>Station Completion</h6>
+                <div class="row mb-4">
+                    <div class="col-md-3 text-center">
+                        <div class="card border-success">
+                            <div class="card-body py-3">
+                                <i class="fas fa-heartbeat fa-2x text-success mb-2"></i>
+                                <h6>Vitals</h6>
+                                {% if visit.vitals %}
+                                <span class="badge bg-success">Completed</span>
+                                {% else %}
+                                <span class="badge bg-danger">Missing</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <div class="card border-success">
+                            <div class="card-body py-3">
+                                <i class="fas fa-user-md fa-2x text-success mb-2"></i>
+                                <h6>Doctor</h6>
+                                {% if visit.doctor_questionnaire %}
+                                <span class="badge bg-success">Completed</span>
+                                {% else %}
+                                <span class="badge bg-danger">Missing</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <div class="card border-success">
+                            <div class="card-body py-3">
+                                <i class="fas fa-brain fa-2x text-success mb-2"></i>
+                                <h6>Psychiatry</h6>
+                                {% if visit.psychiatrist_questionnaire %}
+                                <span class="badge bg-success">Completed</span>
+                                {% else %}
+                                <span class="badge bg-danger">Missing</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <div class="card border-success">
+                            <div class="card-body py-3">
+                                <i class="fas fa-flask fa-2x text-success mb-2"></i>
+                                <h6>Lab</h6>
+                                {% if visit.lab_request %}
+                                <span class="badge bg-success">Completed</span>
+                                {% else %}
+                                <span class="badge bg-danger">Missing</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Final Notes -->
+                <form method="post" id="completeVisitForm">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="completion_notes" class="form-label">Completion Notes (Optional)</label>
+                        <textarea class="form-control" id="completion_notes" name="completion_notes" rows="3" 
+                                  placeholder="Any final notes about this visit..."></textarea>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <h6><i class="fas fa-exclamation-triangle"></i> Important</h6>
+                        <p class="mb-0">
+                            Once completed, this visit will be marked as finished and no further edits will be allowed 
+                            to maintain data integrity. Please ensure all information is correct.
+                        </p>
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{% url 'core:dashboard' %}" class="btn btn-secondary me-md-2">
+                            <i class="fas fa-times"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-check-circle"></i> Complete Visit
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('completeVisitForm').addEventListener('submit', function(e) {
+    const confirmed = confirm('Are you sure you want to mark this visit as completed? This action cannot be undone.');
+    if (!confirmed) {
+        e.preventDefault();
+        return false;
+    }
+    return true;
+});
+</script>
+{% endblock %}

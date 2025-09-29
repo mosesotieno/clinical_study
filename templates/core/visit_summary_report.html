@@ -1,0 +1,439 @@
+{% extends 'base.html' %}
+
+{% block title %}Visit Summary Report - Clinical Study Manager{% endblock %}
+
+{% block page_title %}Visit Summary Report{% endblock %}
+
+{% block page_actions %}
+<div class="btn-group">
+    <button class="btn btn-sm btn-success" onclick="window.print()">
+        <i class="fas fa-print"></i> Print
+    </button>
+    <button class="btn btn-sm btn-info" onclick="exportToExcel()">
+        <i class="fas fa-file-excel"></i> Export Excel
+    </button>
+    <button class="btn btn-sm btn-primary" onclick="filterReport()">
+        <i class="fas fa-filter"></i> Filter
+    </button>
+</div>
+{% endblock %}
+
+{% block content %}
+<!-- Filter Section -->
+<div class="card shadow mb-4">
+    <div class="card-header bg-light">
+        <h6 class="card-title mb-0">
+            <i class="fas fa-filter"></i> Report Filters
+        </h6>
+    </div>
+    <div class="card-body">
+        <form id="reportFilterForm">
+            <div class="row">
+                <div class="col-md-3">
+                    <label for="date_from" class="form-label">From Date</label>
+                    <input type="date" class="form-control" id="date_from" name="date_from">
+                </div>
+                <div class="col-md-3">
+                    <label for="date_to" class="form-label">To Date</label>
+                    <input type="date" class="form-control" id="date_to" name="date_to">
+                </div>
+                <div class="col-md-3">
+                    <label for="visit_type" class="form-label">Visit Type</label>
+                    <select class="form-select" id="visit_type" name="visit_type">
+                        <option value="">All Types</option>
+                        <option value="BASELINE">Baseline</option>
+                        <option value="FOLLOWUP_1">1st Follow-up</option>
+                        <option value="FOLLOWUP_2">2nd Follow-up</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="status" class="form-label">Status</label>
+                    <select class="form-select" id="status" name="status">
+                        <option value="">All Status</option>
+                        <option value="completed">Completed</option>
+                        <option value="active">Active</option>
+                        <option value="incomplete">Incomplete</option>
+                    </select>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search"></i> Apply Filters
+                    </button>
+                    <button type="reset" class="btn btn-secondary">
+                        <i class="fas fa-undo"></i> Reset
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Summary Cards -->
+<div class="row mb-4">
+    <div class="col-xl-3 col-md-6">
+        <div class="card bg-primary text-white mb-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <div class="text-xs font-weight-bold text-uppercase mb-1">Total Visits</div>
+                        <div class="h5 mb-0">156</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-clipboard-list fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card bg-success text-white mb-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <div class="text-xs font-weight-bold text-uppercase mb-1">Completed</div>
+                        <div class="h5 mb-0">128</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-check-circle fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card bg-warning text-dark mb-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <div class="text-xs font-weight-bold text-uppercase mb-1">In Progress</div>
+                        <div class="h5 mb-0">18</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-running fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card bg-info text-white mb-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <div class="text-xs font-weight-bold text-uppercase mb-1">Completion Rate</div>
+                        <div class="h5 mb-0">82.1%</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-percentage fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Detailed Report -->
+<div class="card shadow">
+    <div class="card-header bg-primary text-white">
+        <h5 class="card-title mb-0">
+            <i class="fas fa-table"></i> Visit Details
+        </h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover" id="visitSummaryTable">
+                <thead class="table-light">
+                    <tr>
+                        <th>Visit ID</th>
+                        <th>Participant</th>
+                        <th>Visit Type</th>
+                        <th>Date & Time</th>
+                        <th>Duration</th>
+                        <th>Vitals</th>
+                        <th>Doctor</th>
+                        <th>Psychiatry</th>
+                        <th>Lab</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Sample Data - Replace with actual Django template variables -->
+                    <tr>
+                        <td>VIS-001</td>
+                        <td>
+                            <strong>ENR-001</strong><br>
+                            <small>John Doe</small>
+                        </td>
+                        <td><span class="badge bg-primary">Baseline</span></td>
+                        <td>2024-01-15 09:30</td>
+                        <td>45 min</td>
+                        <td><i class="fas fa-check text-success"></i></td>
+                        <td><i class="fas fa-check text-success"></i></td>
+                        <td><i class="fas fa-check text-success"></i></td>
+                        <td><i class="fas fa-check text-success"></i></td>
+                        <td><span class="badge bg-success">Completed</span></td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>VIS-002</td>
+                        <td>
+                            <strong>ENR-002</strong><br>
+                            <small>Jane Smith</small>
+                        </td>
+                        <td><span class="badge bg-info">1st Follow-up</span></td>
+                        <td>2024-01-15 10:15</td>
+                        <td>38 min</td>
+                        <td><i class="fas fa-check text-success"></i></td>
+                        <td><i class="fas fa-check text-success"></i></td>
+                        <td><i class="fas fa-times text-danger"></i></td>
+                        <td><i class="fas fa-times text-danger"></i></td>
+                        <td><span class="badge bg-warning">In Progress</span></td>
+                        <td>
+                            <a href="{% url 'core:psychiatrist_assessment' 2 %}" class="btn btn-sm btn-primary">
+                                Continue
+                            </a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>VIS-003</td>
+                        <td>
+                            <strong>ENR-003</strong><br>
+                            <small>Mike Johnson</small>
+                        </td>
+                        <td><span class="badge bg-secondary">2nd Follow-up</span></td>
+                        <td>2024-01-15 11:00</td>
+                        <td>52 min</td>
+                        <td><i class="fas fa-check text-success"></i></td>
+                        <td><i class="fas fa-check text-success"></i></td>
+                        <td><i class="fas fa-check text-success"></i></td>
+                        <td><i class="fas fa-check text-success"></i></td>
+                        <td><span class="badge bg-success">Completed</span></td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>VIS-004</td>
+                        <td>
+                            <strong>ENR-004</strong><br>
+                            <small>Sarah Wilson</small>
+                        </td>
+                        <td><span class="badge bg-primary">Baseline</span></td>
+                        <td>2024-01-15 13:30</td>
+                        <td>41 min</td>
+                        <td><i class="fas fa-check text-success"></i></td>
+                        <td><i class="fas fa-check text-success"></i></td>
+                        <td><i class="fas fa-check text-success"></i></td>
+                        <td><i class="fas fa-check text-success"></i></td>
+                        <td><span class="badge bg-success">Completed</span></td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>VIS-005</td>
+                        <td>
+                            <strong>ENR-005</strong><br>
+                            <small>Tom Brown</small>
+                        </td>
+                        <td><span class="badge bg-info">1st Follow-up</span></td>
+                        <td>2024-01-15 14:45</td>
+                        <td>35 min</td>
+                        <td><i class="fas fa-check text-success"></i></td>
+                        <td><i class="fas fa-times text-danger"></i></td>
+                        <td><i class="fas fa-times text-danger"></i></td>
+                        <td><i class="fas fa-times text-danger"></i></td>
+                        <td><span class="badge bg-warning">In Progress</span></td>
+                        <td>
+                            <a href="{% url 'core:doctor_assessment' 5 %}" class="btn btn-sm btn-primary">
+                                Continue
+                            </a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <nav aria-label="Page navigation" class="mt-4">
+            <ul class="pagination justify-content-center">
+                <li class="page-item disabled">
+                    <a class="page-link" href="#" tabindex="-1">Previous</a>
+                </li>
+                <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                <li class="page-item"><a class="page-link" href="#">2</a></li>
+                <li class="page-item"><a class="page-link" href="#">3</a></li>
+                <li class="page-item">
+                    <a class="page-link" href="#">Next</a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</div>
+
+<!-- Summary Statistics -->
+<div class="row mt-4">
+    <div class="col-lg-6">
+        <div class="card shadow">
+            <div class="card-header bg-info text-white">
+                <h6 class="card-title mb-0">
+                    <i class="fas fa-chart-bar"></i> Visit Type Summary
+                </h6>
+            </div>
+            <div class="card-body">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Visit Type</th>
+                            <th>Count</th>
+                            <th>Percentage</th>
+                            <th>Avg Duration</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Baseline</td>
+                            <td>68</td>
+                            <td>43.6%</td>
+                            <td>48 min</td>
+                        </tr>
+                        <tr>
+                            <td>1st Follow-up</td>
+                            <td>52</td>
+                            <td>33.3%</td>
+                            <td>42 min</td>
+                        </tr>
+                        <tr>
+                            <td>2nd Follow-up</td>
+                            <td>36</td>
+                            <td>23.1%</td>
+                            <td>38 min</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h6 class="card-title mb-0">
+                    <i class="fas fa-tachometer-alt"></i> Performance Metrics
+                </h6>
+            </div>
+            <div class="card-body">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Metric</th>
+                            <th>Value</th>
+                            <th>Trend</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Average Visit Duration</td>
+                            <td>43 min</td>
+                            <td><i class="fas fa-arrow-down text-success"></i> -5%</td>
+                        </tr>
+                        <tr>
+                            <td>Completion Rate</td>
+                            <td>82.1%</td>
+                            <td><i class="fas fa-arrow-up text-success"></i> +3%</td>
+                        </tr>
+                        <tr>
+                            <td>Daily Capacity</td>
+                            <td>28 visits</td>
+                            <td><i class="fas fa-arrow-up text-success"></i> +12%</td>
+                        </tr>
+                        <tr>
+                            <td>Participant Satisfaction</td>
+                            <td>4.7/5</td>
+                            <td><i class="fas fa-arrow-up text-success"></i> +0.2</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function exportToExcel() {
+    alert('Excel export functionality would be implemented here');
+}
+
+function filterReport() {
+    // Simple filter implementation
+    const visitType = document.getElementById('visit_type').value;
+    const status = document.getElementById('status').value;
+    
+    const rows = document.querySelectorAll('#visitSummaryTable tbody tr');
+    
+    rows.forEach(row => {
+        let showRow = true;
+        
+        if (visitType) {
+            const typeBadge = row.cells[2].querySelector('.badge');
+            if (typeBadge && !typeBadge.textContent.toLowerCase().includes(visitType.toLowerCase())) {
+                showRow = false;
+            }
+        }
+        
+        if (status && showRow) {
+            const statusBadge = row.cells[9].querySelector('.badge');
+            if (statusBadge) {
+                if (status === 'completed' && !statusBadge.classList.contains('bg-success')) {
+                    showRow = false;
+                } else if (status === 'active' && !statusBadge.classList.contains('bg-warning')) {
+                    showRow = false;
+                } else if (status === 'incomplete' && statusBadge.classList.contains('bg-success')) {
+                    showRow = false;
+                }
+            }
+        }
+        
+        row.style.display = showRow ? '' : 'none';
+    });
+}
+
+document.getElementById('reportFilterForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    filterReport();
+});
+
+// Set default dates
+document.addEventListener('DOMContentLoaded', function() {
+    const today = new Date().toISOString().split('T')[0];
+    const oneWeekAgo = new Date();
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+    const oneWeekAgoStr = oneWeekAgo.toISOString().split('T')[0];
+    
+    document.getElementById('date_from').value = oneWeekAgoStr;
+    document.getElementById('date_to').value = today;
+});
+</script>
+
+<style>
+@media print {
+    .btn-group, .page_actions, .card-header.bg-light {
+        display: none !important;
+    }
+    
+    .table-responsive {
+        overflow: visible !important;
+    }
+}
+</style>
+{% endblock %}

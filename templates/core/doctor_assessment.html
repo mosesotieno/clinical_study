@@ -1,0 +1,238 @@
+{% extends 'base.html' %}
+
+{% block title %}Doctor Assessment - Clinical Study Manager{% endblock %}
+
+{% block page_title %}Medical Assessment{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-user-md"></i> Doctor Assessment - {{ visit.participant.first_name }} {{ visit.participant.last_name }}
+                </h5>
+            </div>
+            <div class="card-body">
+                <!-- Vitals Summary -->
+                <div class="alert alert-info">
+                    <h6><i class="fas fa-heartbeat"></i> Vitals Summary</h6>
+                    <div class="row">
+                        <div class="col-md-2"><strong>BP:</strong> {{ visit.vitals.blood_pressure_systolic }}/{{ visit.vitals.blood_pressure_diastolic }} mmHg</div>
+                        <div class="col-md-2"><strong>HR:</strong> {{ visit.vitals.heart_rate }} bpm</div>
+                        <div class="col-md-2"><strong>Temp:</strong> {{ visit.vitals.temperature }} °C</div>
+                        <div class="col-md-3"><strong>Height/Weight:</strong> {{ visit.vitals.height }} cm / {{ visit.vitals.weight }} kg</div>
+                        <div class="col-md-3">
+                            <strong>BMI:</strong> {{ bmi|default:"N/A" }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Participant Info -->
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <strong>Participant ID:</strong> {{ visit.participant.participant_id }}
+                    </div>
+                    <div class="col-md-4">
+                        <strong>Visit Type:</strong> {{ visit.get_visit_type_display }}
+                    </div>
+                    <div class="col-md-4">
+                        <strong>Age:</strong> {{ visit.participant.date_of_birth|timesince }}
+                    </div>
+                </div>
+
+                <form method="post" id="doctorForm">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="chief_complaint" class="form-label">Chief Complaint *</label>
+                        <textarea class="form-control" id="chief_complaint" name="chief_complaint" rows="3" required placeholder="Primary reason for visit..."></textarea>
+                        <div class="form-text">Describe the main symptoms or concerns</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="medical_history" class="form-label">Medical History</label>
+                        <textarea class="form-control" id="medical_history" name="medical_history" rows="3" placeholder="Relevant medical history, surgeries, chronic conditions..."></textarea>
+                        <div class="form-text">Include past medical conditions, surgeries, hospitalizations</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="current_medications" class="form-label">Current Medications</label>
+                        <textarea class="form-control" id="current_medications" name="current_medications" rows="2" placeholder="List current medications with dosages..."></textarea>
+                        <div class="form-text">Include prescription, over-the-counter, and supplements</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="physical_exam_findings" class="form-label">Physical Examination Findings *</label>
+                        <textarea class="form-control" id="physical_exam_findings" name="physical_exam_findings" rows="4" required placeholder="Document physical examination findings..."></textarea>
+                        <div class="form-text">Include general appearance, vital signs, system-based findings</div>
+                        
+                        <!-- Quick Templates -->
+                        <div class="mt-2">
+                            <small class="text-muted">Quick templates:</small>
+                            <button type="button" class="btn btn-sm btn-outline-secondary ms-2" onclick="insertTemplate('normal_exam')">Normal Exam</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="insertTemplate('hypertension')">Hypertension</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="insertTemplate('diabetes')">Diabetes</button>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-warning">
+                        <h6><i class="fas fa-exclamation-triangle"></i> Clinical Alert</h6>
+                        <p class="mb-0">
+                            If you identify any urgent medical concerns, please ensure appropriate follow-up 
+                            and consider immediate referral if necessary.
+                        </p>
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{% url 'core:vitals' visit.id %}" class="btn btn-secondary me-md-2">
+                            <i class="fas fa-arrow-left"></i> Back to Vitals
+                        </a>
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-save"></i> Complete Assessment
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('doctorForm');
+    
+    form.addEventListener('submit', function(e) {
+        const chiefComplaint = document.getElementById('chief_complaint').value.trim();
+        const physicalExam = document.getElementById('physical_exam_findings').value.trim();
+        
+        if (!chiefComplaint) {
+            e.preventDefault();
+            alert('Please enter the chief complaint.');
+            document.getElementById('chief_complaint').focus();
+            return false;
+        }
+        
+        if (!physicalExam) {
+            e.preventDefault();
+            alert('Please document physical examination findings.');
+            document.getElementById('physical_exam_findings').focus();
+            return false;
+        }
+        
+        // Show loading state
+        const submitBtn = form.querySelector('button[type="submit"]');
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+        submitBtn.disabled = true;
+    });
+
+    // Auto-save draft functionality
+    let autoSaveTimer;
+    const inputs = form.querySelectorAll('textarea, input[type="text"]');
+    
+    inputs.forEach(input => {
+        input.addEventListener('input', function() {
+            clearTimeout(autoSaveTimer);
+            autoSaveTimer = setTimeout(function() {
+                // Save form data to localStorage
+                const formData = new FormData(form);
+                const data = {};
+                formData.forEach((value, key) => {
+                    data[key] = value;
+                });
+                localStorage.setItem('doctorAssessmentDraft', JSON.stringify(data));
+                console.log('Auto-save completed');
+            }, 3000);
+        });
+    });
+
+    // Load draft from localStorage
+    const savedDraft = localStorage.getItem('doctorAssessmentDraft');
+    if (savedDraft) {
+        const draftData = JSON.parse(savedDraft);
+        Object.keys(draftData).forEach(key => {
+            const element = document.querySelector(`[name="${key}"]`);
+            if (element) {
+                element.value = draftData[key];
+            }
+        });
+        console.log('Draft loaded from auto-save');
+    }
+
+    // Clear draft on successful form submission
+    form.addEventListener('submit', function() {
+        localStorage.removeItem('doctorAssessmentDraft');
+    });
+});
+
+// Quick templates for common findings
+function insertTemplate(templateType) {
+    const templates = {
+        'normal_exam': `GENERAL: Alert and oriented, no acute distress.
+HEENT: Normocephalic, atraumatic. Pupils equal, round, reactive to light. 
+NECK: Supple, no lymphadenopathy, no thyromegaly.
+CARDIOVASCULAR: Regular rate and rhythm, no murmurs, rubs, or gallops.
+RESPIRATORY: Clear to auscultation bilaterally, no wheezes or crackles.
+ABDOMEN: Soft, non-tender, non-distended, normal bowel sounds.
+NEUROLOGIC: Alert and oriented x4, cranial nerves intact, strength 5/5 throughout.`,
+
+        'hypertension': `BLOOD PRESSURE: Elevated at {{ visit.vitals.blood_pressure_systolic }}/{{ visit.vitals.blood_pressure_diastolic }} mmHg.
+CARDIOVASCULAR: Regular rhythm, no murmurs. Distal pulses 2+ bilaterally.
+FUNDOSCOPIC: No hemorrhages, exudates, or papilledema.
+CAROTIDS: No bruits.
+PERIPHERAL: No edema.`,
+
+        'diabetes': `GENERAL: Well-appearing, no acute distress.
+EXTREMITIES: Foot exam - protective sensation intact, monofilament testing normal, no ulcers.
+SKIN: No acanthosis nigricans.
+EYES: No visual complaints, fundoscopic exam deferred.`
+    };
+
+    const textarea = document.getElementById('physical_exam_findings');
+    if (textarea && templates[templateType]) {
+        // Replace template variables with actual values
+        let template = templates[templateType];
+        template = template.replace('{{ visit.vitals.blood_pressure_systolic }}', '{{ visit.vitals.blood_pressure_systolic }}');
+        template = template.replace('{{ visit.vitals.blood_pressure_diastolic }}', '{{ visit.vitals.blood_pressure_diastolic }}');
+        
+        textarea.value = template;
+        // Trigger input event for auto-save
+        textarea.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+}
+
+// Keyboard shortcuts
+document.addEventListener('keydown', function(e) {
+    // Ctrl + S to save draft
+    if (e.ctrlKey && e.key === 's') {
+        e.preventDefault();
+        const event = new Event('input', { bubbles: true });
+        document.getElementById('doctorForm').dispatchEvent(event);
+        alert('Draft saved locally');
+    }
+});
+</script>
+
+<style>
+.form-label {
+    font-weight: 600;
+    color: #495057;
+}
+.alert h6 {
+    margin-bottom: 0.5rem;
+}
+.card-header {
+    border-bottom: none;
+}
+.btn {
+    min-width: 120px;
+}
+.quick-templates {
+    font-size: 0.875rem;
+}
+.quick-templates .btn {
+    font-size: 0.75rem;
+    padding: 0.2rem 0.5rem;
+}
+</style>
+{% endblock %}

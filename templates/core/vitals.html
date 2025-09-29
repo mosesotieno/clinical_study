@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+
+{% block title %}Vitals - Clinical Study Manager{% endblock %}
+
+{% block page_title %}Vitals Measurement{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="card shadow">
+            <div class="card-header bg-info text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-heartbeat"></i> Vitals - {{ visit.participant.first_name }} {{ visit.participant.last_name }}
+                </h5>
+            </div>
+            <div class="card-body">
+                <!-- Participant Info -->
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <strong>Participant ID:</strong><br>
+                        {{ visit.participant.participant_id }}
+                    </div>
+                    <div class="col-md-3">
+                        <strong>Visit Type:</strong><br>
+                        {{ visit.get_visit_type_display }}
+                    </div>
+                    <div class="col-md-3">
+                        <strong>Age:</strong><br>
+                        {{ visit.participant.date_of_birth|timesince }}
+                    </div>
+                    <div class="col-md-3">
+                        <strong>Gender:</strong><br>
+                        {{ visit.participant.get_gender_display }}
+                    </div>
+                </div>
+
+                <form method="post" id="vitalsForm">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="blood_pressure_systolic" class="form-label">Blood Pressure (Systolic) *</label>
+                            <input type="number" class="form-control" id="blood_pressure_systolic" name="blood_pressure_systolic" min="50" max="250" required>
+                            <div class="form-text">mmHg</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="blood_pressure_diastolic" class="form-label">Blood Pressure (Diastolic) *</label>
+                            <input type="number" class="form-control" id="blood_pressure_diastolic" name="blood_pressure_diastolic" min="30" max="150" required>
+                            <div class="form-text">mmHg</div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="heart_rate" class="form-label">Heart Rate *</label>
+                            <input type="number" class="form-control" id="heart_rate" name="heart_rate" min="30" max="200" required>
+                            <div class="form-text">Beats per minute</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="temperature" class="form-label">Temperature *</label>
+                            <input type="number" class="form-control" id="temperature" name="temperature" step="0.1" min="35" max="42" required>
+                            <div class="form-text">°C</div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="height" class="form-label">Height *</label>
+                            <input type="number" class="form-control" id="height" name="height" step="0.1" min="100" max="220" required>
+                            <div class="form-text">cm</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="weight" class="form-label">Weight *</label>
+                            <input type="number" class="form-control" id="weight" name="weight" step="0.1" min="30" max="200" required>
+                            <div class="form-text">kg</div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="vitals_notes" class="form-label">Notes</label>
+                        <textarea class="form-control" id="vitals_notes" name="vitals_notes" rows="2"></textarea>
+                    </div>
+
+                    <div class="alert alert-warning">
+                        <h6><i class="fas fa-exclamation-triangle"></i> Clinical Alert</h6>
+                        <p class="mb-0">If any vital signs are outside normal ranges, please inform the study physician immediately.</p>
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{% url 'core:dashboard' %}" class="btn btn-secondary me-md-2">Cancel</a>
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-save"></i> Save Vitals & Continue
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+$(document).ready(function() {
+    // Basic validation for vitals ranges
+    $('#vitalsForm').on('submit', function(e) {
+        const systolic = parseInt($('#blood_pressure_systolic').val());
+        const diastolic = parseInt($('#blood_pressure_diastolic').val());
+        
+        if (systolic <= diastolic) {
+            alert('Systolic pressure must be greater than diastolic pressure');
+            e.preventDefault();
+            return false;
+        }
+        
+        // Add more validation as needed
+        return true;
+    });
+});
+</script>
+{% endblock %}

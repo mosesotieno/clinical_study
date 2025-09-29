@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+
+{% block title %}Active Visits - Clinical Study Manager{% endblock %}
+
+{% block page_title %}Active Visits{% endblock %}
+
+{% block content %}
+<div class="card shadow">
+    <div class="card-header bg-warning text-dark">
+        <h5 class="card-title mb-0">
+            <i class="fas fa-running"></i> Currently Active Visits ({{ visits.count }})
+        </h5>
+    </div>
+    <div class="card-body">
+        {% if visits %}
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover">
+                <thead class="table-warning">
+                    <tr>
+                        <th>Participant</th>
+                        <th>Visit Type</th>
+                        <th>Start Time</th>
+                        <th>Current Station</th>
+                        <th>Time Elapsed</th>
+                        <th>Progress</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for visit in visits %}
+                    <tr>
+                        <td>
+                            <strong>{{ visit.participant.participant_id }}</strong><br>
+                            <small>{{ visit.participant.first_name }} {{ visit.participant.last_name }}</small>
+                        </td>
+                        <td>
+                            <span class="badge bg-info">{{ visit.get_visit_type_display }}</span>
+                        </td>
+                        <td>{{ visit.visit_date|date:"H:i" }}</td>
+                        <td>
+                            {% if not visit.vitals %}
+                                <span class="badge bg-danger">Vitals Station</span>
+                            {% elif not visit.doctor_questionnaire %}
+                                <span class="badge bg-primary">Doctor Assessment</span>
+                            {% elif not visit.psychiatrist_questionnaire %}
+                                <span class="badge bg-warning">Psychiatry</span>
+                            {% elif not visit.lab_request %}
+                                <span class="badge bg-info">Lab Request</span>
+                            {% else %}
+                                <span class="badge bg-success">Ready to Complete</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ visit.visit_date|timesince }}</td>
+                        <td>
+                            <div class="progress" style="height: 8px;">
+                                {% widthratio visit.progress 4 100 as progress %}
+                                <div class="progress-bar" role="progressbar" style="width: {{ progress }}%"></div>
+                            </div>
+                            <small class="text-muted">{{ visit.progress }}/4 stations</small>
+                        </td>
+                        <td>
+                            {% if not visit.vitals %}
+                            <a href="{% url 'vitals' visit.id %}" class="btn btn-sm btn-primary">
+                                Take Vitals
+                            </a>
+                            {% elif not visit.doctor_questionnaire %}
+                            <a href="{% url 'doctor_assessment' visit.id %}" class="btn btn-sm btn-primary">
+                                Doctor Assessment
+                            </a>
+                            {% elif not visit.psychiatrist_questionnaire %}
+                            <a href="{% url 'psychiatrist_assessment' visit.id %}" class="btn btn-sm btn-primary">
+                                Psychiatry
+                            </a>
+                            {% elif not visit.lab_request %}
+                            <a href="{% url 'lab_request' visit.id %}" class="btn btn-sm btn-primary">
+                                Lab Request
+                            </a>
+                            {% else %}
+                            <a href="{% url 'complete_visit' visit.id %}" class="btn btn-sm btn-success">
+                                Complete Visit
+                            </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+            <h4 class="text-success">No Active Visits</h4>
+            <p class="text-muted">All visits have been completed. Great work!</p>
+            <a href="{% url 'enroll_participant' %}" class="btn btn-success">
+                <i class="fas fa-user-plus"></i> Enroll New Participant
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Station Summary -->
+<div class="row mt-4">
+    <div class="col-md-3">
+        <div class="card bg-danger text-white text-center">
+            <div class="card-body">
+                <h3>{{ visits.filter.vitals__isnull=True.count }}</h3>
+                <p class="mb-0">Waiting for Vitals</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-primary text-white text-center">
+            <div class="card-body">
+                <h3>{{ visits.filter.vitals__isnull=False.doctor_questionnaire__isnull=True.count }}</h3>
+                <p class="mb-0">With Doctor</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-dark text-center">
+            <div class="card-body">
+                <h3>{{ visits.filter.doctor_questionnaire__isnull=False.psychiatrist_questionnaire__isnull=True.count }}</h3>
+                <p class="mb-0">With Psychiatry</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white text-center">
+            <div class="card-body">
+                <h3>{{ visits.filter.psychiatrist_questionnaire__isnull=False.lab_request__isnull=True.count }}</h3>
+                <p class="mb-0">Lab Requests</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
