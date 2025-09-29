@@ -2,10 +2,21 @@ from django import forms
 from .models import Participant, Vitals, DoctorQuestionnaire, PsychiatristQuestionnaire, LabRequest, Visit
 
 
+
 class ParticipantForm(forms.ModelForm):
     class Meta:
         model = Participant
-        fields = ['participant_id', 'first_name', 'last_name', 'date_of_birth', 'gender', 'contact_info']
+        fields = [
+            "participant_id",
+            "first_name",
+            "last_name",
+            "date_of_birth",
+            "gender",
+            "contact_info",
+        ]
+        widgets = {
+            "date_of_birth": forms.DateInput(attrs={"type": "date"}),
+        }
 
 
 class VisitForm(forms.ModelForm):

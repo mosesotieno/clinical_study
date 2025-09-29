@@ -16,65 +16,45 @@
             <div class="card-body">
                 <form method="post" id="enrollmentForm">
                     {% csrf_token %}
+                    {{ form.non_field_errors }}
                     
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label for="participant_id" class="form-label">Participant ID *</label>
-                            <input type="text" class="form-control" id="participant_id" name="participant_id" required>
-                            <div class="form-text">Auto-generated participant identifier</div>
+                            {{ form.participant_id.label_tag }}
+                            {{ form.participant_id }}
+                            {{ form.participant_id.errors }}
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label for="enrollment_date" class="form-label">Enrollment Date *</label>
-                            <input type="datetime-local" class="form-control" id="enrollment_date" name="enrollment_date" required>
+                            {{ form.date_of_birth.label_tag }}
+                            {{ form.date_of_birth }}
+                            {{ form.date_of_birth.errors }}
                         </div>
                     </div>
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label for="first_name" class="form-label">First Name *</label>
-                            <input type="text" class="form-control" id="first_name" name="first_name" required>
+                            {{ form.first_name.label_tag }}
+                            {{ form.first_name }}
+                            {{ form.first_name.errors }}
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label for="last_name" class="form-label">Last Name *</label>
-                            <input type="text" class="form-control" id="last_name" name="last_name" required>
+                            {{ form.last_name.label_tag }}
+                            {{ form.last_name }}
+                            {{ form.last_name.errors }}
                         </div>
                     </div>
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label for="date_of_birth" class="form-label">Date of Birth *</label>
-                            <input type="date" class="form-control" id="date_of_birth" name="date_of_birth" required>
+                            {{ form.gender.label_tag }}
+                            {{ form.gender }}
+                            {{ form.gender.errors }}
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label for="gender" class="form-label">Gender *</label>
-                            <select class="form-select" id="gender" name="gender" required>
-                                <option value="">Select Gender</option>
-                                <option value="M">Male</option>
-                                <option value="F">Female</option>
-                                <option value="O">Other</option>
-                            </select>
+                            {{ form.contact_info.label_tag }}
+                            {{ form.contact_info }}
+                            {{ form.contact_info.errors }}
                         </div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="contact_info" class="form-label">Contact Information *</label>
-                        <input type="text" class="form-control" id="contact_info" name="contact_info" required>
-                        <div class="form-text">Phone number or email address</div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="emergency_contact" class="form-label">Emergency Contact</label>
-                        <input type="text" class="form-control" id="emergency_contact" name="emergency_contact">
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="medical_history" class="form-label">Initial Medical Notes</label>
-                        <textarea class="form-control" id="medical_history" name="medical_history" rows="3"></textarea>
-                    </div>
-
-                    <div class="alert alert-info">
-                        <h6><i class="fas fa-info-circle"></i> Important</h6>
-                        <p class="mb-0">After enrollment, the participant will proceed to the vitals station for baseline measurements.</p>
                     </div>
 
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
@@ -84,6 +64,7 @@
                         </button>
                     </div>
                 </form>
+
             </div>
         </div>
     </div>

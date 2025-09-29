@@ -105,36 +105,23 @@ def dashboard(request):
 # =============================================================================
 # PARTICIPANT MANAGEMENT VIEWS
 # =============================================================================
-
 @login_required
 def enroll_participant(request):
     """Enroll a new participant"""
-    if request.method == 'POST':
-        try:
-            participant_id = request.POST.get('participant_id')
-            first_name = request.POST.get('first_name')
-            last_name = request.POST.get('last_name')
-            date_of_birth = request.POST.get('date_of_birth')
-            gender = request.POST.get('gender')
-            contact_info = request.POST.get('contact_info')
-            
-            participant = Participant.objects.create(
-                participant_id=participant_id,
-                first_name=first_name,
-                last_name=last_name,
-                date_of_birth=date_of_birth,
-                gender=gender,
-                contact_info=contact_info,
-                created_by=request.user
-            )
-            
-            messages.success(request, 'Participant enrolled successfully!')
-            return redirect('dashboard')
-        except Exception as e:
-            messages.error(request, f'Error enrolling participant: {str(e)}')
-    
-    return render(request, 'core/enrollment.html')
+    if request.method == "POST":
+        form = ParticipantForm(request.POST)
+        if form.is_valid():
+            participant = form.save(commit=False)
+            participant.created_by = request.user
+            participant.save()
+            messages.success(request, "Participant enrolled successfully!")
+            return redirect("core:dashboard")
+        else:
+            messages.error(request, "Please correct the errors below.")
+    else:
+        form = ParticipantForm()
 
+    return render(request, "core/enrollment.html", {"form": form})
 
 @login_required
 def participant_list(request):
