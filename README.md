@@ -63,12 +63,12 @@ The system provides a complete workflow for **participant enrollment, visit trac
 ---
 
 ## 📂 Project Structure
-
+```bash
 clinical_study/
 ├── core/                 # Core app with models, views, templates
 ├── templates/            # Base and extended templates
 │   └── base.html         # Main layout file
 ├── static/               # Static assets (CSS, JS, images)
 ├── manage.py             # Django project runner
-|── requirements.txt      # Required modules
+── requirements.txt      # Required modules
 └── README.md             # Project documentation
