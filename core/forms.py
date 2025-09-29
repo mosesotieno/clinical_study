@@ -73,10 +73,32 @@ class PsychiatristQuestionnaireForm(forms.ModelForm):
 
 
 class LabRequestForm(forms.ModelForm):
+    TEST_CHOICES = [
+        ("CBC", "Complete Blood Count"),
+        ("LFT", "Liver Function Test"),
+        ("RFT", "Renal Function Test"),
+        ("XRAY", "Chest X-Ray"),
+        ("HIV", "HIV Test"),
+    ]
+
+    tests_requested = forms.MultipleChoiceField(
+        choices=TEST_CHOICES,
+        widget=forms.CheckboxSelectMultiple,
+        required=True,
+    )
+
     class Meta:
         model = LabRequest
-        fields = ['tests_requested', 'urgency', 'notes']
+        fields = ["tests_requested", "urgency", "notes"]
+        widgets = {
+            "urgency": forms.Select(attrs={"class": "form-select"}),
+            "notes": forms.Textarea(attrs={"rows": 3, "class": "form-control"}),
+        }
 
+    def clean_tests_requested(self):
+        """Ensure data is stored as JSON (list)"""
+        data = self.cleaned_data["tests_requested"]
+        return list(data)  # this will serialize correctly into JSONField
 
 class VisitForm(forms.ModelForm):
     class Meta:

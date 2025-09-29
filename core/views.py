@@ -395,34 +395,27 @@ def psychiatrist_assessment(request, visit_id):
 def create_lab_request(request, visit_id):
     """Create lab request for a visit"""
     visit = get_object_or_404(Visit, id=visit_id)
-    
-    # Check if previous step (psychiatrist assessment) is completed
-    if not hasattr(visit, 'psychiatrist_questionnaire'):
-        messages.warning(request, 'Please complete psychiatrist assessment first.')
-        return redirect('psychiatrist_assessment', visit_id=visit_id)
-    
-    if request.method == 'POST':
-        try:
-            tests_requested = request.POST.getlist('tests_requested')
-            urgency = request.POST.get('urgency')
-            notes = request.POST.get('notes')
-            
-            lab_request = LabRequest.objects.create(
-                visit=visit,
-                tests_requested=tests_requested,
-                urgency=urgency,
-                notes=notes,
-                requested_by=request.user
-            )
-            
-            messages.success(request, 'Lab request created successfully!')
-            return redirect('complete_visit', visit_id=visit.id)
-        except Exception as e:
-            messages.error(request, f'Error creating lab request: {str(e)}')
-    
-    context = {'visit': visit}
-    return render(request, 'core/lab_request.html', context)
 
+    # Ensure psychiatrist assessment is done
+    if not hasattr(visit, "psychiatrist_questionnaire"):
+        messages.warning(request, "Please complete psychiatrist assessment first.")
+        return redirect("core:psychiatrist_assessment", visit_id=visit_id)
+
+    if request.method == "POST":
+        form = LabRequestForm(request.POST)
+        if form.is_valid():
+            lab_request = form.save(commit=False)
+            lab_request.visit = visit
+            lab_request.requested_by = request.user
+            lab_request.save()
+            messages.success(request, "Lab request created successfully!")
+            return redirect("core:complete_visit", visit_id=visit.id)
+        else:
+            messages.error(request, "Please correct the errors below.")
+    else:
+        form = LabRequestForm()
+
+    return render(request, "core/lab_request.html", {"form": form, "visit": visit})
 
 @login_required
 def complete_visit(request, visit_id):
