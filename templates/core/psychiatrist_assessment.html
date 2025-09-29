@@ -23,12 +23,13 @@
 
                 <form method="post" id="psychiatryForm">
                     {% csrf_token %}
-                    
+                    {{ form.non_field_errors }}
+
                     <div class="mb-3">
-                        <label for="mental_status_exam" class="form-label">Mental Status Examination *</label>
-                        <textarea class="form-control" id="mental_status_exam" name="mental_status_exam" rows="4" required placeholder="Appearance, behavior, mood, affect, thought process, cognition..."></textarea>
-                        <div class="form-text">Describe appearance, behavior, speech, mood, affect, thought process, thought content, cognition, insight, judgment</div>
-                        
+                        {{ form.mental_status_exam.label_tag }}
+                        {{ form.mental_status_exam }}
+                        {{ form.mental_status_exam.errors }}
+
                         <!-- Quick Templates -->
                         <div class="mt-2">
                             <small class="text-muted">Quick templates:</small>
@@ -39,23 +40,15 @@
                     </div>
 
                     <div class="mb-3">
-                        <label for="risk_factors" class="form-label">Risk Assessment</label>
-                        <textarea class="form-control" id="risk_factors" name="risk_factors" rows="3" placeholder="Suicide risk, violence risk, self-harm, etc..."></textarea>
-                        <div class="form-text">Assess for suicide risk, violence risk, self-harm potential, and protective factors</div>
+                        {{ form.risk_factors.label_tag }}
+                        {{ form.risk_factors }}
+                        {{ form.risk_factors.errors }}
                     </div>
 
                     <div class="mb-3">
-                        <label for="recommendations" class="form-label">Recommendations & Treatment Plan *</label>
-                        <textarea class="form-control" id="recommendations" name="recommendations" rows="3" required placeholder="Treatment recommendations, follow-up plan..."></textarea>
-                        <div class="form-text">Include medication recommendations, therapy referrals, follow-up schedule, safety planning</div>
-                    </div>
-
-                    <div class="alert alert-danger">
-                        <h6><i class="fas fa-exclamation-triangle"></i> Risk Assessment Alert</h6>
-                        <p class="mb-0">
-                            If patient expresses suicidal or homicidal ideation, ensure immediate safety planning 
-                            and consider appropriate level of care.
-                        </p>
+                        {{ form.recommendations.label_tag }}
+                        {{ form.recommendations }}
+                        {{ form.recommendations.errors }}
                     </div>
 
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
@@ -67,6 +60,7 @@
                         </button>
                     </div>
                 </form>
+
             </div>
         </div>
     </div>

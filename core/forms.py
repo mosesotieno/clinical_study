@@ -69,7 +69,21 @@ class DoctorQuestionnaireForm(forms.ModelForm):
 class PsychiatristQuestionnaireForm(forms.ModelForm):
     class Meta:
         model = PsychiatristQuestionnaire
-        fields = ['mental_status_exam', 'risk_factors', 'recommendations']
+        fields = ["mental_status_exam", "risk_factors", "recommendations"]
+        widgets = {
+            "mental_status_exam": forms.Textarea(attrs={
+                "rows": 4, "class": "form-control",
+                "placeholder": "Appearance, behavior, mood, affect, thought process, cognition..."
+            }),
+            "risk_factors": forms.Textarea(attrs={
+                "rows": 3, "class": "form-control",
+                "placeholder": "Suicide risk, violence risk, self-harm, etc..."
+            }),
+            "recommendations": forms.Textarea(attrs={
+                "rows": 3, "class": "form-control",
+                "placeholder": "Treatment recommendations, follow-up plan..."
+            }),
+        }
 
 
 class LabRequestForm(forms.ModelForm):
@@ -100,10 +114,36 @@ class LabRequestForm(forms.ModelForm):
         data = self.cleaned_data["tests_requested"]
         return list(data)  # this will serialize correctly into JSONField
 
-class VisitForm(forms.ModelForm):
+
+class VitalsForm(forms.ModelForm):
     class Meta:
-        model = Visit
-        fields = ['visit_type']
+        model = Vitals
+        fields = [
+            "blood_pressure_systolic",
+            "blood_pressure_diastolic",
+            "heart_rate",
+            "temperature",
+            "height",
+            "weight",
+        ]
+        widgets = {
+            "blood_pressure_systolic": forms.NumberInput(attrs={"class": "form-control", "min": 50, "max": 250}),
+            "blood_pressure_diastolic": forms.NumberInput(attrs={"class": "form-control", "min": 30, "max": 150}),
+            "heart_rate": forms.NumberInput(attrs={"class": "form-control", "min": 30, "max": 200}),
+            "temperature": forms.NumberInput(attrs={"class": "form-control", "step": 0.1, "min": 35, "max": 42}),
+            "height": forms.NumberInput(attrs={"class": "form-control", "step": 0.1, "min": 100, "max": 220}),
+            "weight": forms.NumberInput(attrs={"class": "form-control", "step": 0.1, "min": 30, "max": 200}),
+        }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        systolic = cleaned_data.get("blood_pressure_systolic")
+        diastolic = cleaned_data.get("blood_pressure_diastolic")
+
+        if systolic and diastolic and systolic <= diastolic:
+            raise forms.ValidationError("Systolic pressure must be greater than diastolic pressure.")
+        return cleaned_data
+
 
 
 class DoctorAssessmentForm(forms.ModelForm):

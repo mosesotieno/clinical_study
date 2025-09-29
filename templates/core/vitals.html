@@ -34,56 +34,53 @@
                     </div>
                 </div>
 
-                <form method="post" id="vitalsForm">
+               <form method="post" id="vitalsForm">
                     {% csrf_token %}
-                    
+                    {{ form.non_field_errors }}
+
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label for="blood_pressure_systolic" class="form-label">Blood Pressure (Systolic) *</label>
-                            <input type="number" class="form-control" id="blood_pressure_systolic" name="blood_pressure_systolic" min="50" max="250" required>
-                            <div class="form-text">mmHg</div>
+                            {{ form.blood_pressure_systolic.label_tag }}
+                            {{ form.blood_pressure_systolic }}
+                            {{ form.blood_pressure_systolic.errors }}
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label for="blood_pressure_diastolic" class="form-label">Blood Pressure (Diastolic) *</label>
-                            <input type="number" class="form-control" id="blood_pressure_diastolic" name="blood_pressure_diastolic" min="30" max="150" required>
-                            <div class="form-text">mmHg</div>
+                            {{ form.blood_pressure_diastolic.label_tag }}
+                            {{ form.blood_pressure_diastolic }}
+                            {{ form.blood_pressure_diastolic.errors }}
                         </div>
                     </div>
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label for="heart_rate" class="form-label">Heart Rate *</label>
-                            <input type="number" class="form-control" id="heart_rate" name="heart_rate" min="30" max="200" required>
-                            <div class="form-text">Beats per minute</div>
+                            {{ form.heart_rate.label_tag }}
+                            {{ form.heart_rate }}
+                            {{ form.heart_rate.errors }}
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label for="temperature" class="form-label">Temperature *</label>
-                            <input type="number" class="form-control" id="temperature" name="temperature" step="0.1" min="35" max="42" required>
-                            <div class="form-text">°C</div>
+                            {{ form.temperature.label_tag }}
+                            {{ form.temperature }}
+                            {{ form.temperature.errors }}
                         </div>
                     </div>
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label for="height" class="form-label">Height *</label>
-                            <input type="number" class="form-control" id="height" name="height" step="0.1" min="100" max="220" required>
-                            <div class="form-text">cm</div>
+                            {{ form.height.label_tag }}
+                            {{ form.height }}
+                            {{ form.height.errors }}
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label for="weight" class="form-label">Weight *</label>
-                            <input type="number" class="form-control" id="weight" name="weight" step="0.1" min="30" max="200" required>
-                            <div class="form-text">kg</div>
+                            {{ form.weight.label_tag }}
+                            {{ form.weight }}
+                            {{ form.weight.errors }}
                         </div>
                     </div>
 
                     <div class="mb-3">
-                        <label for="vitals_notes" class="form-label">Notes</label>
-                        <textarea class="form-control" id="vitals_notes" name="vitals_notes" rows="2"></textarea>
-                    </div>
-
-                    <div class="alert alert-warning">
-                        <h6><i class="fas fa-exclamation-triangle"></i> Clinical Alert</h6>
-                        <p class="mb-0">If any vital signs are outside normal ranges, please inform the study physician immediately.</p>
+                        {{ form.notes.label_tag }}
+                        {{ form.notes }}
+                        {{ form.notes.errors }}
                     </div>
 
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
@@ -93,6 +90,7 @@
                         </button>
                     </div>
                 </form>
+
             </div>
         </div>
     </div>

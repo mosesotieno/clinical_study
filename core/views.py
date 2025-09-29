@@ -289,37 +289,31 @@ def complete_visit(request, visit_id):
 
 @login_required
 def take_vitals(request, visit_id):
-    """Take vitals for a visit"""
+    """Take or update vitals for a visit using ModelForm"""
     visit = get_object_or_404(Visit, id=visit_id)
-    
-    if request.method == 'POST':
-        try:
-            blood_pressure_systolic = request.POST.get('blood_pressure_systolic')
-            blood_pressure_diastolic = request.POST.get('blood_pressure_diastolic')
-            heart_rate = request.POST.get('heart_rate')
-            temperature = request.POST.get('temperature')
-            height = request.POST.get('height')
-            weight = request.POST.get('weight')
-            
-            vitals = Vitals.objects.create(
-                visit=visit,
-                blood_pressure_systolic=blood_pressure_systolic,
-                blood_pressure_diastolic=blood_pressure_diastolic,
-                heart_rate=heart_rate,
-                temperature=temperature,
-                height=height,
-                weight=weight,
-                taken_by=request.user
-            )
-            
-            messages.success(request, 'Vitals recorded successfully!')
-            return redirect('core:doctor_assessment', visit_id=visit.id)
-        except Exception as e:
-            messages.error(request, f'Error saving vitals: {str(e)}')
-    
-    context = {'visit': visit}
-    return render(request, 'core/vitals.html', context)
 
+    # If vitals already exist, load them for editing
+    vitals = getattr(visit, "vitals", None)
+
+    if request.method == "POST":
+        form = VitalsForm(request.POST, instance=vitals)
+        if form.is_valid():
+            vitals = form.save(commit=False)
+            vitals.visit = visit
+            vitals.taken_by = request.user
+            vitals.save()
+            messages.success(request, "Vitals recorded successfully!")
+            return redirect("core:doctor_assessment", visit_id=visit.id)
+        else:
+            messages.error(request, "Please correct the errors below.")
+    else:
+        form = VitalsForm(instance=vitals)
+
+    context = {
+        "visit": visit,
+        "form": form,
+    }
+    return render(request, "core/vitals.html", context)
 
 @login_required
 def doctor_assessment(request, visit_id):
@@ -358,37 +352,36 @@ def doctor_assessment(request, visit_id):
     return render(request, "core/doctor_assessment.html", context)
 
 
+
 @login_required
 def psychiatrist_assessment(request, visit_id):
     """Psychiatrist assessment for a visit"""
     visit = get_object_or_404(Visit, id=visit_id)
-    
-    # Check if previous step (doctor assessment) is completed
-    if not hasattr(visit, 'doctor_questionnaire'):
-        messages.warning(request, 'Please complete doctor assessment first.')
-        return redirect('core:doctor_assessment', visit_id=visit_id)
-    
-    if request.method == 'POST':
-        try:
-            mental_status_exam = request.POST.get('mental_status_exam')
-            risk_factors = request.POST.get('risk_factors')
-            recommendations = request.POST.get('recommendations')
-            
-            psychiatrist_questionnaire = PsychiatristQuestionnaire.objects.create(
-                visit=visit,
-                mental_status_exam=mental_status_exam,
-                risk_factors=risk_factors,
-                recommendations=recommendations,
-                completed_by=request.user
-            )
-            
-            messages.success(request, 'Psychiatrist assessment completed!')
-            return redirect('core:lab_request', visit_id=visit.id)
-        except Exception as e:
-            messages.error(request, f'Error saving assessment: {str(e)}')
-    
-    context = {'visit': visit}
-    return render(request, 'core/psychiatrist_assessment.html', context)
+
+    # Ensure doctor assessment is completed
+    if not hasattr(visit, "doctor_questionnaire"):
+        messages.warning(request, "Please complete doctor assessment first.")
+        return redirect("core:doctor_assessment", visit_id=visit_id)
+
+    if request.method == "POST":
+        form = PsychiatristQuestionnaireForm(request.POST)
+        if form.is_valid():
+            assessment = form.save(commit=False)
+            assessment.visit = visit
+            assessment.completed_by = request.user
+            assessment.save()
+            messages.success(request, "Psychiatrist assessment completed!")
+            return redirect("core:lab_request", visit_id=visit.id)
+        else:
+            messages.error(request, "Please correct the errors below.")
+    else:
+        form = PsychiatristQuestionnaireForm()
+
+    return render(
+        request,
+        "core/psychiatrist_assessment.html",
+        {"form": form, "visit": visit},
+    )
 
 
 @login_required
