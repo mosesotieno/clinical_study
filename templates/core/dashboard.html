@@ -59,7 +59,7 @@
                         <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
                             Completed Today
                         </div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800">14</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ completed_today }}</div>
                     </div>
                     <div class="col-auto">
                         <i class="fas fa-check-circle fa-2x text-gray-300"></i>
@@ -77,10 +77,33 @@
                         <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
                             Pending Lab Requests
                         </div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800">8</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ pending_labs }}</div>
                     </div>
                     <div class="col-auto">
                         <i class="fas fa-flask fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Average Visit Duration -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-dark shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-dark text-uppercase mb-1">
+                            Avg Visit Duration Today
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {% if avg_duration %}{{ avg_duration }} min{% else %}N/A{% endif %}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-clock fa-2x text-gray-300"></i>
                     </div>
                 </div>
             </div>
@@ -162,7 +185,7 @@
         </div>
     </div>
 
-    <!-- Quick Actions -->
+    <!-- Quick Actions + Recent Activity -->
     <div class="col-lg-4">
         <div class="card shadow mb-4">
             <div class="card-header py-3">
@@ -173,37 +196,36 @@
                     <a href="{% url 'core:enroll_participant' %}" class="btn btn-success btn-lg">
                         <i class="fas fa-user-plus"></i> Enroll Participant
                     </a>
-                    <button class="btn btn-info btn-lg">
+                    <a href="{% url 'core:participant_list' %}" class="btn btn-info btn-lg">
                         <i class="fas fa-search"></i> Find Participant
-                    </button>
-                    <button class="btn btn-warning btn-lg">
+                    </a>
+                    <a href="{% url 'core:study_progress_report' %}" class="btn btn-warning btn-lg">
                         <i class="fas fa-chart-line"></i> View Reports
-                    </button>
+                    </a>
                 </div>
             </div>
         </div>
 
-        <!-- Recent Activity -->
         <div class="card shadow">
             <div class="card-header py-3">
                 <h6 class="m-0 font-weight-bold text-primary">Recent Activity</h6>
             </div>
             <div class="card-body">
                 <div class="list-group list-group-flush">
+                    {% for visit in recent_activity %}
                     <div class="list-group-item">
                         <div class="d-flex w-100 justify-content-between">
-                            <h6 class="mb-1">Participant ENR-001 completed visit</h6>
-                            <small>5 min ago</small>
+                            <h6 class="mb-1">
+                                Participant {{ visit.participant.participant_id }} 
+                                {% if visit.completed %}completed visit{% else %}started visit{% endif %}
+                            </h6>
+                            <small>{{ visit.visit_date|timesince }} ago</small>
                         </div>
-                        <p class="mb-1">Baseline visit completed successfully</p>
+                        <p class="mb-1">{{ visit.get_visit_type_display }}</p>
                     </div>
-                    <div class="list-group-item">
-                        <div class="d-flex w-100 justify-content-between">
-                            <h6 class="mb-1">New participant enrolled</h6>
-                            <small>15 min ago</small>
-                        </div>
-                        <p class="mb-1">ENR-015 - John Doe</p>
-                    </div>
+                    {% empty %}
+                    <p class="text-muted">No recent activity.</p>
+                    {% endfor %}
                 </div>
             </div>
         </div>

@@ -72,6 +72,7 @@ class PsychiatristQuestionnaireForm(forms.ModelForm):
         fields = ["mental_status_exam", "risk_factors", "recommendations"]
         widgets = {
             "mental_status_exam": forms.Textarea(attrs={
+                'id': 'mental_status_exam',
                 "rows": 4, "class": "form-control",
                 "placeholder": "Appearance, behavior, mood, affect, thought process, cognition..."
             }),

@@ -38,9 +38,7 @@
                 <tbody>
                     {% for visit in visits %}
                     <tr>
-                        <td>
-                            <strong>VIS-{{ visit.id|stringformat:"03d" }}</strong>
-                        </td>
+                        <td><strong>VIS-{{ visit.id|stringformat:"03d" }}</strong></td>
                         <td>
                             <strong>{{ visit.participant.participant_id }}</strong><br>
                             <small>{{ visit.participant.first_name }} {{ visit.participant.last_name }}</small>
@@ -196,11 +194,11 @@
             <div class="card-body">
                 <div class="row text-center">
                     <div class="col-6">
-                        <h5 class="text-info">~15 min</h5>
+                        <h5 class="text-info">~{{ avg_vitals_duration|default:"N/A" }}</h5>
                         <small class="text-muted">Vitals Station</small>
                     </div>
                     <div class="col-6">
-                        <h5 class="text-info">~25 min</h5>
+                        <h5 class="text-info">~{{ avg_visit_duration|default:"N/A" }}</h5>
                         <small class="text-muted">Full Visit</small>
                     </div>
                 </div>
@@ -215,9 +213,7 @@ setTimeout(function() {
     window.location.reload();
 }, 60000);
 
-// Add some interactive features
 document.addEventListener('DOMContentLoaded', function() {
-    // Add hover effects to table rows
     const tableRows = document.querySelectorAll('tbody tr');
     tableRows.forEach(row => {
         row.addEventListener('mouseenter', function() {
@@ -231,16 +227,8 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <style>
-.progress {
-    background-color: #e9ecef;
-    border-radius: 4px;
-}
-.progress-bar {
-    background-color: #0d6efd;
-    border-radius: 4px;
-}
-.card.text-center .card-body {
-    padding: 1.5rem 1rem;
-}
+.progress { background-color: #e9ecef; border-radius: 4px; }
+.progress-bar { background-color: #0d6efd; border-radius: 4px; }
+.card.text-center .card-body { padding: 1.5rem 1rem; }
 </style>
 {% endblock %}

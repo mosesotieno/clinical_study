@@ -6,9 +6,11 @@ from django.db.models import Q, Count, Avg
 from django.utils import timezone
 import csv
 from datetime import datetime, timedelta
-
+from datetime import date
 from .models import *
 from .forms import *
+from django.db.models import Avg, F, ExpressionWrapper, DurationField
+
 
 # =============================================================================
 # UTILITY FUNCTIONS
@@ -91,13 +93,46 @@ def export_participants_csv(participants, data_types):
 
 @login_required
 def dashboard(request):
-    """Main dashboard view"""
-    participants = Participant.objects.all().order_by('-enrollment_date')
-    active_visits = Visit.objects.filter(completed=False).select_related('participant')
-    
+    today = date.today()
+
+    participants = Participant.objects.all()
+    active_visits = Visit.objects.filter(completed=False)
+
+    # Completed visits today
+    completed_today_qs = Visit.objects.filter(
+        completed=True,
+        visit_date__date=today
+    )
+    completed_today = completed_today_qs.count()
+
+    # Pending lab requests
+    pending_labs = Visit.objects.filter(
+        completed=False,
+        lab_request__isnull=True
+    ).count()
+
+    # Average duration of completed visits today (in minutes)
+    avg_duration = None
+    if completed_today_qs.exists():
+        completed_today_qs = completed_today_qs.annotate(
+            duration=ExpressionWrapper(
+                F('vitals__taken_at') - F('visit_date'),
+                output_field=DurationField()
+            )
+        )
+        avg_seconds = completed_today_qs.aggregate(avg=Avg('duration'))['avg'].total_seconds()
+        avg_duration = round(avg_seconds / 60, 1)
+
+    # Recent activity
+    recent_activity = Visit.objects.order_by('-visit_date')[:5]
+
     context = {
         'participants': participants,
         'active_visits': active_visits,
+        'completed_today': completed_today,
+        'pending_labs': pending_labs,
+        'recent_activity': recent_activity,
+        'avg_duration': avg_duration,
     }
     return render(request, 'core/dashboard.html', context)
 
